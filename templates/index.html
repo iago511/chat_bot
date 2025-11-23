@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Gemini - Assistente Pessoal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="chat-container" class="chat-container">
+        
+        <header class="chat-header">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="header-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 01-3.072-3.072L2.25 12l2.846-.813a4.5 4.5 0 013.072-3.072L9 5.25l.813 2.846a4.5 4.5 0 003.072 3.072L15.75 12l-2.846.813a4.5 4.5 0 00-3.072 3.072zM15.75 16.875l-2.846-.813a4.5 4.5 0 00-3.072-3.072L9 12.75l.813-2.846a4.5 4.5 0 003.072-3.072L15.75 6.75l2.846.813a4.5 4.5 0 013.072 3.072L21.75 12l-2.846.813a4.5 4.5 0 01-3.072 3.072z" />
+            </svg>
+            <h1>Assistente Gemini de Iago</h1>
+        </header>
+
+        <div id="messages" class="messages-area">
+            <div class="message-row gemini">
+                <div class="chat-bubble">
+                    <p class="sender-name">Assistente AIG</p>
+                    <p class="message-text">Olá! Eu sou sua assistente IA. Estou aqui para te ajudar com seus projetos e estudos. Como posso começar?</p>
+                </div>
+            </div>
+        </div>
+>
+        <footer class="chat-footer">
+            <form id="message-form" class="message-form">
+                <input
+                    type="text"
+                    id="message-input"
+                    placeholder="Digite sua mensagem..."
+                    autocomplete="off"
+                    class="message-input"
+                    required
+                />
+                <button
+                    type="submit"
+                    id="send-button"
+                    class="send-button"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="send-icon">
+                        <path d="M3.478 2.405a.75.75 0 00-.775.353l-.92 4.195c-.07.318.068.678.36.886l1.984 1.458.001.001h.001v.001l.002.001 1.984-1.458a.75.75 0 00.36-.886l-.92-4.195a.75.75 0 00-.775-.353z" />
+                        <path fill-rule="evenodd" d="M3.5 6.75c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+
+    <script>
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+        const messagesDiv = document.getElementById('messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        const username = "Iago";
+        const assistantName = "Gemini";
+        function createMessageElement(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message-row');
+            
+            const isUser = sender === username;
+            messageElement.classList.add(isUser ? 'user' : 'gemini');
+
+            const bubble = `
+                <div class="chat-bubble">
+                    <p class="sender-name">${sender}</p>
+                    <p class="message-text">${text}</p>
+                </div>
+            `;
+            
+            messageElement.innerHTML = bubble;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function disableInput(disabled) {
+            messageInput.disabled = disabled;
+            sendButton.disabled = disabled;
+            if (disabled) {
+                sendButton.innerHTML = 'Aguarde...';
+            } else {
+                sendButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="send-icon">
+                        <path d="M3.478 2.405a.75.75 0 00-.775.353l-.92 4.195c-.07.318.068.678.36.886l1.984 1.458.001.001h.001v.001l.002.001 1.984-1.458a.75.75 0 00.36-.886l-.92-4.195a.75.75 0 00-.775-.353z" />
+                        <path fill-rule="evenodd" d="M3.5 6.75c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75zm0 3c0-.621.504-1.125 1.125-1.125h14.75a.75.75 0 01.083 1.5H4.625a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                    </svg>
+                `;
+            }
+        }
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+
+            if (message) {
+                createMessageElement(message, username);
+
+                disableInput(true);
+                socket.emit('message', message);
+                messageInput.value = '';
+            }
+        });
+
+        socket.on('message', function(msg) {
+            disableInput(false);
+            createMessageElement(msg, assistantName);
+        });
+        socket.on('connect', function() {
+            console.log('Conectado ao servidor Flask-SocketIO!');
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Desconectado do servidor Flask-SocketIO!');
+        });
+    </script>
+</body>
+</html>
