@@ -43,7 +43,7 @@ model = genai.GenerativeModel(
 chat = model.start_chat()
 
 app = Flask(__name__)
-app.config["SECRET"] = "ajuiahfa78fh9f78shfs768fgs7f6"
+app.config["SECRET"] = CHAVE_API
 app.config["DEBUG"] = True
 socketio = SocketIO(app, cors_allowed_origins="*")
 
